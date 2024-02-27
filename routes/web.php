@@ -68,4 +68,8 @@ Route::group(['middleware' => 'auth:api'],function(){
     Route::post('/deleteSize', "Sizecontroller@delete");
     Route::post('/getProfileCompany', "ProfileCompanyController@index");
     Route::post('/updateProfileCompany', "ProfileCompanyController@update");
+    Route::post('/getBrand', "BrandController@index");
+    Route::post('/getSelectedBrand', "BrandController@getSelected");
+    Route::post('/createBrand', "BrandController@create");
+    Route::post('/updateBrand', "BrandController@update");
 });

@@ -26,6 +26,7 @@ class ProdukController extends Controller
                 $getProduk = DB::table('produk')
                 ->leftJoin('categori', 'produk.id_categori', '=', 'categori.id')
                 ->leftJoin('sub_categori', 'produk.id_sub_categori', '=', 'sub_categori.id')
+                ->leftJoin('brand', 'produk.id_brand', 'brand.id')
                 ->leftJoin('size', 'produk.id', '=', 'size.produkId')
                 ->where('produk.name', 'like', $key . $persen)
                 ->orWhere('produk.barcode', 'like', $key . $persen)
@@ -42,6 +43,7 @@ class ProdukController extends Controller
                 $getProduk = DB::table('produk')
                     ->leftJoin('categori', 'produk.id_categori', '=', 'categori.id')
                     ->leftJoin('sub_categori', 'produk.id_sub_categori', '=', 'sub_categori.id')
+                    ->leftJoin('brand', 'produk.id_brand', 'brand.id')
                     ->leftJoin('size', 'produk.id', '=', 'size.produkId')
                     ->select('produk.id','produk.name',"produk.harga",'categori.name as kategori','sub_categori.name as subKategori', 
                     DB::raw("GROUP_CONCAT(size.name, ':', size.jumlah ORDER BY size.id ASC SEPARATOR ' ') as size") ,
@@ -73,9 +75,10 @@ class ProdukController extends Controller
             //code...
             $getProduk = DB::table('produk')
             ->leftJoin('categori', 'produk.id_categori', '=', 'categori.id')
+            ->leftJoin('brand', 'produk.id_brand', 'brand.id')
             ->leftJoin('sub_categori', 'produk.id_sub_categori', '=', 'sub_categori.id')
             ->where("produk.id", "=", $request->id)
-            ->select('produk.*', 'categori.name as categoriName', 'sub_categori.name as subKategoriName')
+            ->select('produk.*', 'categori.name as categoriName', 'sub_categori.name as subKategoriName', 'brand.name as brandName')
             ->first();
             ;
 
@@ -121,6 +124,7 @@ class ProdukController extends Controller
             "harga" => "required",
             "idCategori" => "required",
             "idSubCategori" => "required",
+            "idBrand" => "required",
             "deskripsi" => "required",
             "gambar"=> 'required',
             "linkShoope" => "required",
@@ -138,6 +142,7 @@ class ProdukController extends Controller
                     "barcode" =>$generateCodeBarcode,
                     "id_categori" => $request->input("idCategori"),
                     "id_sub_categori" => $request->input("idSubCategori"),
+                    "id_brand"=> $request->input("idBrand"),
                     "deskripsi" => $request->input("deskripsi"),
                     "color"=> $request->input("color"),
                     "type"=> $request->input("type"),
@@ -202,6 +207,7 @@ class ProdukController extends Controller
             "harga" => "required",
             "idCategori" => "required",
             "idSubCategori" => "required",
+            "idBrand" => "required",
             "deskripsi" => "required",
             "linkShoope" => "required",
             "status"=> "required",
@@ -214,6 +220,7 @@ class ProdukController extends Controller
                 "harga" => $request->input("harga"),
                 "id_categori" => $request->input("idCategori"),
                 "id_sub_categori" => $request->input("idSubCategori"),
+                "id_brand" => $request->input('idBrand'),
                 "deskripsi" => $request->input("deskripsi"),
                 "color"=> $request->input("color"),
                 "type"=> $request->input("type"),
