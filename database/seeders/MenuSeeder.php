@@ -36,7 +36,7 @@ class MenuSeeder extends Seeder
             ],
             [
                 "name" => "Profil Perusahaan",
-                "link" => "/dashboard/profilCompany",
+                "link" => "/dashboard/profileCompany",
                 "jenis" => "view",
                 "element" => "Profil Perusahaan"
             ],

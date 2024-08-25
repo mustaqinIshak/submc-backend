@@ -10,8 +10,8 @@ class DashboardController extends Controller
     //
     public function index() {
         try {
-            $getProdukquatity = DB::table('produk')->count();
-            $getBrandquatity = DB::table('brand')->count();
+            $getProdukquantity = DB::table('produk')->count();
+            $getBrandquantity = DB::table('brand')->count();
 
         } catch (\Exception $e) {
             return response()->json([

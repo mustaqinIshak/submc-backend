@@ -13,7 +13,7 @@ class CreateKodeTransaksiTable extends Migration
      */
     public function up()
     {
-        Schema::create('kode_transaksi', function (Blueprint $table) {
+        Schema::create('kode_transaksis', function (Blueprint $table) {
             $table->id();
             $table->integer("idUser", false, true);
             $table->string("kode", 255);

@@ -15,12 +15,13 @@ class CreateTransaksiTable extends Migration
     {
         Schema::create('transaksi', function (Blueprint $table) {
             $table->id();
-            $table->string("kodeTransaksi", 255);
+            $table->string("idKodeTransaksi", 255);
             $table->integer("idProduk", false, true);
             $table->integer("idSize", false, true);
             $table->integer("hargaSatuan", false, true);
             $table->integer("jumlahBarang", false, true);
             $table->integer("diskon", false, true);
+            $table->integer("diskon_amount", false, true);
             $table->integer("total", false, true);
             $table->string("note", 255);
             $table->timestamps();

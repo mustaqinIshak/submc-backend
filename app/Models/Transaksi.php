@@ -8,12 +8,13 @@ class Transaksi extends Model
 {
     //
     protected $fillable = [
-        "kodeTransaksi", 
+        "idKodeTransaksi", 
         "idProduk" , 
         "idSize", 
         "hargaSatuan", 
         "jumlahBarang", 
         "diskon", 
+        "diskon_amount",
         "total", 
         "note"
       ];

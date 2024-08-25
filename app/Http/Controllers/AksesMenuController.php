@@ -52,7 +52,15 @@ class AksesMenuController extends Controller
 
             return response()->json([
                 "status" => true,
-                "data" => $aksesMenu,
+                "data" => [
+                    "id" => (int)$aksesMenu->id,
+                    "id_menu"=> (int)$aksesMenu->id_menu,
+                    "id_role"=> (int)$aksesMenu->id_role,
+                    "act_create"=> (int)$aksesMenu->act_create,
+                    "act_read"=> (int)$aksesMenu->act_read,
+                    "act_update"=> (int)$aksesMenu->act_update,
+                    "act_delete"=> (int)$aksesMenu->act_delete
+                ],
             ]);  
         } catch (\Exception $e) {
             //throw $th;
@@ -82,7 +90,7 @@ class AksesMenuController extends Controller
                 ['id_menu', '=', $request->id_menu],
                 ['id_role', '=', $request->id_role],
             ])
-            ->get();
+            ->first();
 
             if($findData) {
                 $aksesMenu = DB::table('akses_menu')
@@ -106,12 +114,12 @@ class AksesMenuController extends Controller
                     "act_delete" => $request->act_delete,
                 ]);
             }
-
-
+         
             return response()->json([
                 "status" => true,
                 "message" => "add akses menu success"
             ]);
+            
 
         } catch (\Exception $e) {
             //throw $th;

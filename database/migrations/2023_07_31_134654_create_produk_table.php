@@ -20,7 +20,7 @@ class CreateProdukTable extends Migration
             $table->integer("harga", false, true);
             $table->bigInteger("id_categori", false, true);
             $table->bigInteger("id_sub_categori", false, true)->nullable();
-            $table->string("deskripsi", 255)->nullable();
+            $table->text("deskripsi")->nullable();
             $table->string("color", 255)->nullable();
             $table->string("type", 255)->nullable();
             $table->string("jenis_bahan", 255)->nullable();

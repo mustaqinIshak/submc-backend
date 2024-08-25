@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Produk;
 use App\Models\Size;
 use Illuminate\Support\Facades\File;
+use Carbon\Carbon;
 
 class ProdukController extends Controller
 {
@@ -26,7 +27,7 @@ class ProdukController extends Controller
                 $getProduk = DB::table('produk')
                 ->leftJoin('categori', 'produk.id_categori', '=', 'categori.id')
                 ->leftJoin('sub_categori', 'produk.id_sub_categori', '=', 'sub_categori.id')
-                ->leftJoin('brand', 'produk.id_brand', 'brand.id')
+                ->leftJoin('brand', 'produk.id_brand', '=','brand.id')
                 ->leftJoin('size', 'produk.id', '=', 'size.produkId')
                 ->where('produk.name', 'like', $key . $persen)
                 ->orWhere('produk.barcode', 'like', $key . $persen)
@@ -35,7 +36,7 @@ class ProdukController extends Controller
                 ->select('produk.id','produk.name', "produk.harga",'categori.name as kategori','sub_categori.name as subKategori', 
                 DB::raw("GROUP_CONCAT(size.name, ':', size.jumlah ORDER BY size.id ASC SEPARATOR ' ') as size") ,
                 'produk.sale as diskon', 'produk.status as statusProduk')
-                ->groupBy('produk.id')
+                ->groupBy('produk.id','produk.name',"produk.harga",'categori.name','sub_categori.name','produk.sale', 'produk.status')
                 ->orderBy('produk.id', 'desc')
                 ->paginate($request->limit);
                 
@@ -43,12 +44,12 @@ class ProdukController extends Controller
                 $getProduk = DB::table('produk')
                     ->leftJoin('categori', 'produk.id_categori', '=', 'categori.id')
                     ->leftJoin('sub_categori', 'produk.id_sub_categori', '=', 'sub_categori.id')
-                    ->leftJoin('brand', 'produk.id_brand', 'brand.id')
+                    ->leftJoin('brand', 'produk.id_brand', '=','brand.id')
                     ->leftJoin('size', 'produk.id', '=', 'size.produkId')
                     ->select('produk.id','produk.name',"produk.harga",'categori.name as kategori','sub_categori.name as subKategori', 
                     DB::raw("GROUP_CONCAT(size.name, ':', size.jumlah ORDER BY size.id ASC SEPARATOR ' ') as size") ,
                     'produk.sale as diskon', 'produk.status as statusProduk')
-                    ->groupBy('produk.id')
+                    ->groupBy('produk.id','produk.name',"produk.harga",'categori.name','sub_categori.name','produk.sale', 'produk.status')
                     ->orderBy('produk.id', 'desc')
                     ->paginate($request->limit);
             }
@@ -75,7 +76,7 @@ class ProdukController extends Controller
             //code...
             $getProduk = DB::table('produk')
             ->leftJoin('categori', 'produk.id_categori', '=', 'categori.id')
-            ->leftJoin('brand', 'produk.id_brand', 'brand.id')
+            ->leftJoin('brand', 'produk.id_brand', '=','brand.id')
             ->leftJoin('sub_categori', 'produk.id_sub_categori', '=', 'sub_categori.id')
             ->where("produk.id", "=", $request->id)
             ->select('produk.*', 'categori.name as categoriName', 'sub_categori.name as subKategoriName', 'brand.name as brandName')
@@ -130,6 +131,7 @@ class ProdukController extends Controller
             "linkShoope" => "required",
             "status"=> "required",
             "size" => "required",
+            
         ]);
         $kodeName = substr($request->input("name"), 0, 3);
         $dateBarcode = time();
@@ -142,20 +144,21 @@ class ProdukController extends Controller
                     "barcode" =>$generateCodeBarcode,
                     "id_categori" => $request->input("idCategori"),
                     "id_sub_categori" => $request->input("idSubCategori"),
-                    "id_brand"=> $request->input("idBrand"),
                     "deskripsi" => $request->input("deskripsi"),
                     "color"=> $request->input("color"),
                     "type"=> $request->input("type"),
                     "jenis_bahan" => $request->input("jenisBahan"),
                     "link_shoope" => $request->input("linkShoope"),
                     "sale" => $request->input("sale"),
-                    "start_sale" => $request->input("startSale"),
-                    "end_sale" => $request->input("endSale"),
+                    "start_sale" => !$request->input("startSale" ) ? Carbon::now() : $request->input("startSale" ),
+                    "end_sale" => !$request->input("endSale" ) ? Carbon::now() : $request->input("endSale" ),
                     "status" => $request->input("status"),
+                    "id_brand" => $request->input('idBrand'),
+                    "jumlah_sale" => $request->input('jumlahSale')
                 ]);
                 $images = $request->file('gambar');
                 $sizes = $request->input('size');
-            
+                
                 foreach ($images as $image) {
                     // $path = $image->store('uploads'); // Store images in the "uploads" directory.
                     $produkId = $createProduk->id;
@@ -214,22 +217,32 @@ class ProdukController extends Controller
         ]);
 
         try {
+            $getAllGambar = DB::table('gambar_produk')->where("produkId", '=', $request->id)
+            ->get();
+            if(count($getAllGambar) === 0) {
+                return response()->json([
+                    "status" => false,
+                    "message" => "Gambar Produk tidak boleh kosong",
+                ], 400);
+                die;
+            } 
             $updateProduk = Produk::where('id', '=',$request->id)
             ->update([
                 "name"=> $request->input("name"),
                 "harga" => $request->input("harga"),
                 "id_categori" => $request->input("idCategori"),
                 "id_sub_categori" => $request->input("idSubCategori"),
-                "id_brand" => $request->input('idBrand'),
                 "deskripsi" => $request->input("deskripsi"),
                 "color"=> $request->input("color"),
                 "type"=> $request->input("type"),
                 "jenis_bahan" => $request->input("jenisBahan"),
                 "link_shoope" => $request->input("linkShoope"),
                 "sale" => $request->input("sale"),
-                "start_sale" => $request->input("startSale"),
-                "end_sale" => $request->input("endSale"),
+                "start_sale" => !$request->input("startSale" ) ? Carbon::now() : $request->input("startSale" ),
+                "end_sale" => !$request->input("endSale" ) ? Carbon::now() : $request->input("endSale" ),
                 "status" => $request->input("status"),
+                "id_brand" => $request->input('idBrand'),
+                "jumlah_sale" => $request->input('jumlahSale')
             ]);
 
             return response()->json([

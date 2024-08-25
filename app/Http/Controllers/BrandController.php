@@ -27,6 +27,32 @@ class BrandController extends Controller
             die;
         }
     }
+    public function getAll (Request $request) {
+        $this->validate($request, [
+            "limit" => "required",
+        ]);
+        try {
+            //code...
+            $getBrand = DB::table('brand')
+            ->leftJoin("produk","brand.id",'=','produk.id_brand')
+            ->select('brand.*', DB::raw("COUNT(produk.id) as 'jumlah_artikel'"))
+            ->groupBy('brand.id')
+            ->orderBy('brand.id', 'desc')
+            ->paginate($request->limit);
+           
+            return response()->json([
+                "status" => true,
+                "data" => $getBrand
+            ]);
+        } catch (\Exception $e) {
+            //throw $th;
+            return response()->json([
+                "status" => false,
+                "message" => $e->getMessage()
+            ],400);
+            die;
+        }
+    }
 
     public function getSelected (Request $request) {
         $this->validate($request, [

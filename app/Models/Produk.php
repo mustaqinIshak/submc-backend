@@ -25,5 +25,7 @@ class Produk extends Model
         "start_sale",
         "end_sale",
         "status",
+        "id_brand",
+        "jumlah_sale",
     ];
 }

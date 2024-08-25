@@ -63,7 +63,7 @@ class CategoriSeeder extends Seeder
 
         foreach ($multipleCategori as $itemData) {
             # code...
-            DB::table('Categori')->insert($itemData);
+            DB::table('categori')->insert($itemData);
         };
     }
 }

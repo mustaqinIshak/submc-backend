@@ -16,7 +16,7 @@ class CreateBannerHomeTable extends Migration
         Schema::create('banner_home', function (Blueprint $table) {
             $table->id();
             $table->string("gambar", 255);
-            $table->string("link", 255);
+            $table->string("link", 255)->nullable();
             $table->timestamps();
         });
     }

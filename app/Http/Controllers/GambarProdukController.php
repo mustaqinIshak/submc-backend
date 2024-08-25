@@ -80,48 +80,37 @@ class GambarProdukController extends Controller
         ]);
         try {
             //code...
-            $getAllGambar = DB::table('gambar_produk')->where("produkId", '=', $request->idProduk)
-            ->get();
-            if(count($getAllGambar) === 1) {
+            $getGambar = DB::table('gambar_produk')->where("id", '=', $request->id)
+            ->first();
+
+            if($getGambar) {
+                // $parsedUrl = parse_url($getGambar->gambar);
+                // $domain = $parsedUrl['host'];
+                // $filePath = public_path($parsedUrl['path']);
+                // error_log($filePath);
+                $pathNameGambar = 'produkImg'.'/'.$getGambar->name;
+                if(File::exists($pathNameGambar)) {
+                    File::delete($pathNameGambar);
+                    DB::table('gambar_produk')
+                    ->where('id', '=', $request->id)
+                    ->delete()
+                    ;
+                    return response()->json([
+                        "status" => true,
+                        "message" => "Delete Gambar Produk Success",
+                    ]);
+                } else {
+                    return response()->json([
+                        "status" => false,
+                        "message" => "Gambar Produk yang anda ingin hapus tidak ditemukan",
+                    ]);
+                }
+            } else {
                 return response()->json([
                     "status" => false,
-                    "message" => "Gambar Produk tidak boleh kosong",
+                    "message" => "Id Gambar Produk tidak di temukan",
                 ], 400);
                 die;
-            }  else {
-
-                $getGambar = DB::table('gambar_produk')->where("id", '=', $request->id)
-                 ->first();
-     
-                 if($getGambar) {
-                     // $parsedUrl = parse_url($getGambar->gambar);
-                     // $domain = $parsedUrl['host'];
-                     // $filePath = public_path($parsedUrl['path']);
-                     // error_log($filePath);
-                     $pathNameGambar = 'produkImg'.'/'.$getGambar->name;
-                     if(File::exists($pathNameGambar)) {
-                         File::delete($pathNameGambar);
-                         DB::table('gambar_produk')
-                         ->where('id', '=', $request->id)
-                         ->delete()
-                         ;
-                         return response()->json([
-                             "status" => true,
-                             "message" => "Delete Gambar Produk Success",
-                         ]);
-                     } else {
-                         return response()->json([
-                             "status" => false,
-                             "message" => "Gambar Produk yang anda ingin hapus tidak ditemukan",
-                         ]);
-                     }
-                 } else {
-                     return response()->json([
-                         "status" => false,
-                         "message" => "Id Gambar Produk tidak di temukan",
-                     ], 400);
-                     die;
-                 }
             }
         } catch (\Exception $e) {
             //throw $th;

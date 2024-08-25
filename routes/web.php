@@ -20,6 +20,16 @@ $router->get('/', function () use ($router) {
 });
 
 Route::post('/login', 'LoginController@login');
+Route::post('/profileCompany', "CrasherController@getProfileCompany");
+Route::post('/aboutUs', "CrasherController@getAboutUs");
+Route::post('/bannerHome', "CrasherController@getBannerHome");
+Route::post('/newItem', "CrasherController@getNewItem");
+Route::post('/productById', "CrasherController@getProduk");
+Route::post('/categorieProduct', "CrasherController@getCategorie");
+Route::post('/subcategorieProduct', "CrasherController@getSubCategorie");
+Route::post('/productByCategorie', "CrasherController@getByCategorie");
+Route::post('/productByCmmApparel', "CrasherController@getProdukByCmm");
+Route::post('/productByCrasherMusicMerchandise', "CrasherController@getProdukByCrasherMusicMenchandise");
 
 Route::group(['middleware' => 'auth:api'],function(){
     Route::post('/userAll', "UserController@getAll");
@@ -68,8 +78,12 @@ Route::group(['middleware' => 'auth:api'],function(){
     Route::post('/deleteSize', "Sizecontroller@delete");
     Route::post('/getProfileCompany', "ProfileCompanyController@index");
     Route::post('/updateProfileCompany', "ProfileCompanyController@update");
-    Route::post('/getBrand', "BrandController@index");
+    Route::post('/getAllBrand', "BrandController@index");
+    Route::post('/getBrand', "BrandController@getALl");
     Route::post('/getSelectedBrand', "BrandController@getSelected");
     Route::post('/createBrand', "BrandController@create");
     Route::post('/updateBrand', "BrandController@update");
+    Route::post('/getAllKodeTransaksi', "KodeTransaksiController@index");
+    Route::post('/createKodeTransaksi', "KodeTransaksiController@create");
+    Route::post('/searchProdukForTransaksi',"TransaksiController@searchProduk");
 });

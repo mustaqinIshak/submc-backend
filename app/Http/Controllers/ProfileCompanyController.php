@@ -41,8 +41,8 @@ class ProfileCompanyController extends Controller
             "name" => "required",
             "alamat" => "required",
             "nomorHp" => "required",
+            "aboutUs" => "required",
         ]);
-        error_log("takion");
         try {
             //code...
             DB::table("profile_company")->where('id', $request->id)->update([
@@ -52,7 +52,8 @@ class ProfileCompanyController extends Controller
                 "instagram" => $request->instagam,
                 "twitter" => $request->twitter,
                 "facebook" => $request->facebook,
-                "youtube" => $request->youtube
+                "youtube" => $request->youtube,
+                "about_us" => $request->aboutUs,
             ]);
 
             return response()->json([

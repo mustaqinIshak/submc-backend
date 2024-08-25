@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class KodeTransaksi extends Model
 {
@@ -16,4 +17,8 @@ class KodeTransaksi extends Model
         "amount", 
         "status"
       ];
+      public static function generateTransactionCode()
+      {
+          return Str::uuid();
+      }
 }
