@@ -30,6 +30,8 @@ Route::post('/subcategorieProduct', "CrasherController@getSubCategorie");
 Route::post('/productByCategorie', "CrasherController@getByCategorie");
 Route::post('/productByCmmApparel', "CrasherController@getProdukByCmm");
 Route::post('/productByCrasherMusicMerchandise', "CrasherController@getProdukByCrasherMusicMenchandise");
+Route::post('/getBrands', "CrasherController@getBrands");
+Route::post('/brand', "CrasherController@getProdukByBrand");
 
 Route::group(['middleware' => 'auth:api'],function(){
     Route::post('/userAll', "UserController@getAll");
@@ -86,4 +88,8 @@ Route::group(['middleware' => 'auth:api'],function(){
     Route::post('/getAllKodeTransaksi', "KodeTransaksiController@index");
     Route::post('/createKodeTransaksi', "KodeTransaksiController@create");
     Route::post('/searchProdukForTransaksi',"TransaksiController@searchProduk");
+    Route::post('/getCountProduk', "ProdukController@getCountProduct");
+    Route::post('/getCountBrand', "BrandController@getCountBrand");
+    Route::post('/getCountTransaksiShopee', "TransaksiController@getCountTransaksiShopee");
+    Route::post('/getCountTransaksiWa', "TransaksiController@getCountTransaksiWa");
 });

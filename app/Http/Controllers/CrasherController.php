@@ -172,7 +172,7 @@ class CrasherController extends Controller
                 ->where('produk.status', '=', 1)
                 ->select('produk.id', 'produk.name', 'produk.harga', 'produk.sale', 'produk.jumlah_sale', 'produk.start_sale', 'produk.end_sale')
                 ->orderBy('created_at', 'desc')
-                ->groupBy('produk.id')
+                ->groupBy('produk.id', 'produk.name', 'produk.harga', 'produk.sale', 'produk.jumlah_sale', 'produk.start_sale', 'produk.end_sale')
                 ->orderBy('produk.id', 'desc')
                 ->paginate(10);
             }
@@ -182,7 +182,7 @@ class CrasherController extends Controller
                 ->where('produk.id_sub_categori', '=', $request->idSubCategorie)
                 ->select('produk.id', 'produk.name', 'produk.harga', 'produk.sale', 'produk.jumlah_sale', 'produk.start_sale', 'produk.end_sale')
                 ->orderBy('created_at', 'desc')
-                ->groupBy('produk.id')
+                ->groupBy('produk.id', 'produk.name', 'produk.harga', 'produk.sale', 'produk.jumlah_sale', 'produk.start_sale', 'produk.end_sale')
                 ->orderBy('produk.id', 'desc')
                 ->paginate(10);
             } else {
@@ -191,7 +191,7 @@ class CrasherController extends Controller
                 ->where('produk.id_categori', '=', $idCategorie)
                 ->select('produk.id', 'produk.name', 'produk.harga', 'produk.sale', 'produk.jumlah_sale', 'produk.start_sale', 'produk.end_sale')
                 ->orderBy('created_at', 'desc')
-                ->groupBy('produk.id')
+                ->groupBy('produk.id', 'produk.name', 'produk.harga', 'produk.sale', 'produk.jumlah_sale', 'produk.start_sale', 'produk.end_sale')
                 ->orderBy('produk.id', 'desc')
                 ->paginate(10);
             }
@@ -308,6 +308,67 @@ class CrasherController extends Controller
             ->select('produk.id', 'produk.name', 'produk.harga', 'produk.sale', 'produk.jumlah_sale', 'produk.start_sale', 'produk.end_sale')
             ->where('produk.status', '=', 1)
             ->where('brand.name','like','crasher music merchandise' . "%")
+            ->orderBy('produk.created_at', 'desc')
+            ->paginate(10);
+        
+            foreach ($getProduks as $item) { 
+                # code...
+                $getGambarProduk = DB::table('gambar_produk')
+                ->where("produkId", "=", $item->id)
+                ->get()
+                ;
+    
+                $item->gambar1 = $getGambarProduk[0];
+                $item->gambar2 = $getGambarProduk[1] ? $getGambarProduk[1] : $getGambarProduk[0];
+    
+            }
+           
+            return response()->json([
+                "status" => true,
+                "data" => $getProduks,
+            ]);
+            
+            } catch (\Exception $e) {
+                //throw $th;
+                return response()->json([
+                    "status" => false,
+                    "message" => $e->getMessage()
+                ],400);
+                die;
+            }
+    }
+
+    function getBrands() {
+        try {
+            //code...
+            $getBrands = DB::table('brand')
+            ->select('id','name')
+            ->get();
+            return response()->json([
+                "status" => true,
+                "data" => $getBrands,
+            ]);
+        } catch (\Exception $e) {
+            //throw $th;
+            return response()->json([
+                "status" => false,
+                "message" => $e->getMessage()
+            ],400);
+            die;
+        }
+    }
+
+    function getProdukByBrand(Request $request) {
+        $this->validate($request, [
+            "id" => "required"
+        ]);
+        $idBrand = $request->id;
+        try {
+        $getProduks = DB::table('produk')
+            ->leftJoin('brand','produk.id_brand', '=', 'brand.id')
+            ->select('produk.id', 'produk.name', 'produk.harga', 'produk.sale', 'produk.jumlah_sale', 'produk.start_sale', 'produk.end_sale')
+            ->where('produk.status', '=', 1)
+            ->where('produk.id_brand','=',$idBrand)
             ->orderBy('produk.created_at', 'desc')
             ->paginate(10);
         

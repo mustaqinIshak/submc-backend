@@ -51,6 +51,48 @@ class TransaksiController extends Controller
         }
     }
 
+    public function getCountTransaksiShopee(Request $request) {
+        
+        try {
+            //code...
+            $getCount = DB::table('size')
+            ->count('id');
+
+            return response()->json([
+                "status" => true,
+                "data" => $getCount,
+            ]);
+        } catch (\Exception $e) {
+            //throw $th;
+            return response()->json([
+                "status" => false,
+                "message" => $e->getMessage()
+            ],400);
+            die;
+        }
+    }
+
+    public function getCountTransaksiWa(Request $request) {
+        
+        try {
+            //code...
+            $getCount = DB::table('size')
+            ->count('id');
+
+            return response()->json([
+                "status" => true,
+                "data" => $getCount,
+            ]);
+        } catch (\Exception $e) {
+            //throw $th;
+            return response()->json([
+                "status" => false,
+                "message" => $e->getMessage()
+            ],400);
+            die;
+        }
+    }
+
     public function searchProduk(Request $request)
     {
         try {
@@ -87,50 +129,50 @@ class TransaksiController extends Controller
         
     }
 
-    function store(Request $request) {
-        try {
-            $products = $request->input('produks'); // Array produk dengan id dan quantity
+    // function store(Request $request) {
+    //     try {
+    //         $products = $request->input('produks'); // Array produk dengan id dan quantity
 
-            $transaction = new Transaksi();
-            $transaction->idKodeTransaksi = Str::uuid();
-            $transaction->total = 0; // Awal total amount
-            $transaction->save();
+    //         $transaction = new Transaksi();
+    //         $transaction->idKodeTransaksi = Str::uuid();
+    //         $transaction->total = 0; // Awal total amount
+    //         $transaction->save();
     
-            $totalAmount = 0;
+    //         $totalAmount = 0;
     
-            foreach ($products as $productData) {
-                $product = Produk::find($productData['id']);
-                $size = Size::find($productData['sizeid']);
-                if ($product->stock < $productData['quantity']) {
-                    return response()->json(['message' => 'Stok tidak mencukupi untuk produk ' . $product->name], 400);
-                }
+    //         foreach ($products as $productData) {
+    //             $product = Produk::find($productData['id']);
+    //             $size = Size::find($productData['sizeid']);
+    //             if ($product->stock < $productData['quantity']) {
+    //                 return response()->json(['message' => 'Stok tidak mencukupi untuk produk ' . $product->name], 400);
+    //             }
     
-                $product->stock -= $productData['quantity'];
-                $product->save();
+    //             $product->stock -= $productData['quantity'];
+    //             $product->save();
     
-                $detail = new TransactionDetail();
-                $detail->transaction_id = $transaction->id;
-                $detail->product_id = $product->id;
-                $detail->quantity = $productData['quantity'];
-                $detail->price = $product->price;
-                $detail->save();
+    //             $detail = new TransactionDetail();
+    //             $detail->transaction_id = $transaction->id;
+    //             $detail->product_id = $product->id;
+    //             $detail->quantity = $productData['quantity'];
+    //             $detail->price = $product->price;
+    //             $detail->save();
     
-                $totalAmount += $product->price * $productData['quantity'];
-            }
+    //             $totalAmount += $product->price * $productData['quantity'];
+    //         }
     
-            $transaction->total_amount = $totalAmount;
-            $transaction->save();
+    //         $transaction->total_amount = $totalAmount;
+    //         $transaction->save();
     
-            return response()->json($transaction->load('details'), 201);
-        }   catch (\Exception $e) {
-            //throw $th;
-            return response()->json([
-                "status" => false,
-                "message" => $e->getMessage()
-            ],400);
-            die;
-        }
-    }
+    //         return response()->json($transaction->load('details'), 201);
+    //     }   catch (\Exception $e) {
+    //         //throw $th;
+    //         return response()->json([
+    //             "status" => false,
+    //             "message" => $e->getMessage()
+    //         ],400);
+    //         die;
+    //     }
+    // }
 
     function create(Request $request) {
         try {

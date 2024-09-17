@@ -54,6 +54,27 @@ class BrandController extends Controller
         }
     }
 
+    public function getCountBrand(Request $request) {
+        
+        try {
+            //code...
+            $getCount = DB::table('brand')
+            ->count('id');
+
+            return response()->json([
+                "status" => true,
+                "data" => $getCount,
+            ]);
+        } catch (\Exception $e) {
+            //throw $th;
+            return response()->json([
+                "status" => false,
+                "message" => $e->getMessage()
+            ],400);
+            die;
+        }
+    }
+
     public function getSelected (Request $request) {
         $this->validate($request, [
             "id" => "required"

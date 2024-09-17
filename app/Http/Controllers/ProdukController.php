@@ -68,6 +68,27 @@ class ProdukController extends Controller
         }
     }
 
+    public function getCountProduct(Request $request) {
+        
+        try {
+            //code...
+            $getCount = DB::table('size')
+            ->sum('jumlah');
+
+            return response()->json([
+                "status" => true,
+                "data" => $getCount,
+            ]);
+        } catch (\Exception $e) {
+            //throw $th;
+            return response()->json([
+                "status" => false,
+                "message" => $e->getMessage()
+            ],400);
+            die;
+        }
+    }
+
     public function getSelected (Request $request) {
         $this->validate($request, [
             "id" => "required",
