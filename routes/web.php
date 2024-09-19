@@ -92,4 +92,9 @@ Route::group(['middleware' => 'auth:api'],function(){
     Route::post('/getCountBrand', "BrandController@getCountBrand");
     Route::post('/getCountTransaksiShopee', "TransaksiController@getCountTransaksiShopee");
     Route::post('/getCountTransaksiWa', "TransaksiController@getCountTransaksiWa");
+    Route::post('/transaction/search-products',"TransaksiController@searchProduk");
+    Route::post('/transaction/store',"TransaksiController@store");
+    Route::post('/jenisPembayaran', "JenisPembayaranController@index");
+    Route::post('/jenisPembayaran/store', "JenisPembayaranController@store");
+    Route::post('/jenisPembayaran/update', "JenisPembayaranController@update");
 });

@@ -1,11 +1,14 @@
 <?php
 
 namespace App\Http\Controllers;
+
+use App\Models\KodeTransaksi;
 use App\Models\Produk;
 use App\Models\Size;
-use App\Models\TransaksinDetail;
+
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -96,10 +99,10 @@ class TransaksiController extends Controller
     public function searchProduk(Request $request)
     {
         try {
-            $keyword = $request->input('keyword');
+            $keyword = $request->keyword;;
             $results = [];
             $products = DB::table('produk')->where('name', 'like', "%{$keyword}%")
-                                ->orWhere('barcode', $keyword)
+                                ->orWhere('barcode', 'like', "%{$keyword}%")
                                 ->get();
             foreach ($products as $productData) {
                 $sizes = DB::table('size')->where('produkId', $productData->id)->get();
@@ -111,6 +114,7 @@ class TransaksiController extends Controller
                         "harga" => $productData->harga,
                         "id_size"=>$size->id,
                         "size" => $size->name,
+                        "diskon" => $productData->jumlah_sale ? $productData->jumlah_sale : 0,
                         "jumlah_stok" => $size->jumlah
                     ];
                     array_push($results,$result);
@@ -129,50 +133,73 @@ class TransaksiController extends Controller
         
     }
 
-    // function store(Request $request) {
-    //     try {
-    //         $products = $request->input('produks'); // Array produk dengan id dan quantity
+    function store(Request $request) {
+        $this->validate($request, [
+            'produks' => 'required',
+            'total' => 'required',
+            'idMetodePembayaran' => 'required',
+        ]);
+        try {
+            $products = $request->produks; // Array produk dengan id dan quantity
+            $user = Auth::user();
+            $transaction = new KodeTransaksi();
+            $transaction->kode = Str::uuid(); 
+            $transaction->idUser = $user->id;  
+            $transaction->amount = 0; // Awal total amount
+            $transaction->save();
+    
+            $totalAmount = 0;
+    
+            foreach ($products as $productData) {
+                // $product = Produk::find($productData['id']);
+                // $size = Size::find($productData['sizeid']);
+                // if ($product->stock < $productData['quantity']) {
+                //     return response()->json(['message' => 'Stok tidak mencukupi untuk produk ' . $product->name], 400);
+                // }
+    
+                // $product->stock -= $productData['quantity'];
+                // $product->save();
+    
+                // $detail = new Transaksi();
+                // $detail->transaction_id = $transaction->id;
+                // $detail->product_id = $product->id;
+                // $detail->quantity = $productData['quantity'];
+                // $detail->price = $product->price;
+                // $detail->save();
+    
+                // $totalAmount += $product->price * $productData['quantity'];
+                $product = DB::table('produk')->where('id','=', $productData->id)->first();
+                $size = DB::table('size')->where('id', '=', $productData->sizeId)->first();
 
-    //         $transaction = new Transaksi();
-    //         $transaction->idKodeTransaksi = Str::uuid();
-    //         $transaction->total = 0; // Awal total amount
-    //         $transaction->save();
+                $size->jumlah -= $productData->quantity;
+                
+                DB::table('size')->where('id', '=', $productData->sizeId)->update([$size]);
+                $detail = new Transaksi();
+                $detail->idKodeTransaksi = $transaction->id;
+                $detail->idProduk = $productData->id;
+                $detail->hargaSatuan = $productData->harga;
+                $detail->jumlahBarang = $productData->quantity; 
+                $detail->diskon = $productData->diskon ? $productData->diskon : 0;
+                $detail->diskon_amount = $productData->diskon_amount ? $productData->diskon_amount : 0;
+                $detail->total = $productData->total;
+                $detail->save();
+                $totalAmount += $productData->total;
+            }
     
-    //         $totalAmount = 0;
+            $transaction->total_amount = $totalAmount;
+            $transaction->idTax = $request->idJenisPembayaran;
+            $transaction->save();
     
-    //         foreach ($products as $productData) {
-    //             $product = Produk::find($productData['id']);
-    //             $size = Size::find($productData['sizeid']);
-    //             if ($product->stock < $productData['quantity']) {
-    //                 return response()->json(['message' => 'Stok tidak mencukupi untuk produk ' . $product->name], 400);
-    //             }
-    
-    //             $product->stock -= $productData['quantity'];
-    //             $product->save();
-    
-    //             $detail = new TransactionDetail();
-    //             $detail->transaction_id = $transaction->id;
-    //             $detail->product_id = $product->id;
-    //             $detail->quantity = $productData['quantity'];
-    //             $detail->price = $product->price;
-    //             $detail->save();
-    
-    //             $totalAmount += $product->price * $productData['quantity'];
-    //         }
-    
-    //         $transaction->total_amount = $totalAmount;
-    //         $transaction->save();
-    
-    //         return response()->json($transaction->load('details'), 201);
-    //     }   catch (\Exception $e) {
-    //         //throw $th;
-    //         return response()->json([
-    //             "status" => false,
-    //             "message" => $e->getMessage()
-    //         ],400);
-    //         die;
-    //     }
-    // }
+            return response()->json($transaction->load('details'), 201);
+        }   catch (\Exception $e) {
+            //throw $th;
+            return response()->json([
+                "status" => false,
+                "message" => $e->getMessage()
+            ],400);
+            die;
+        }
+    }
 
     function create(Request $request) {
         try {
