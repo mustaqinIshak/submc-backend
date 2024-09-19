@@ -102,7 +102,7 @@ class ProdukController extends Controller
             ->where("produk.id", "=", $request->id)
             ->select('produk.*', 'categori.name as categoriName', 'sub_categori.name as subKategoriName', 'brand.name as brandName')
             ->first();
-            ;
+            
 
             if($getProduk) {
                 $getGambarProduk = DB::table('gambar_produk')

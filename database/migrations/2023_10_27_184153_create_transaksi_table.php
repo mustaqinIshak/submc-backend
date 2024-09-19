@@ -23,7 +23,7 @@ class CreateTransaksiTable extends Migration
             $table->integer("diskon", false, true);
             $table->integer("diskon_amount", false, true);
             $table->integer("total", false, true);
-            $table->string("note", 255);
+            $table->string("note", 255)->nullable();
             $table->timestamps();
         });
     }

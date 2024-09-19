@@ -13,7 +13,7 @@ class CreateJenisPembayaranTable extends Migration
      */
     public function up()
     {
-        Schema::create('jenis_pembayaran', function (Blueprint $table) {
+        Schema::create('jenis_pembayarans', function (Blueprint $table) {
             $table->id();
             $table->string("name", 255);
             $table->integer("rate", false, true);

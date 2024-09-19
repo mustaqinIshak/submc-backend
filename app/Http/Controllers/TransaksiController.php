@@ -144,15 +144,17 @@ class TransaksiController extends Controller
             $user = Auth::user();
             $transaction = new KodeTransaksi();
             $transaction->kode = Str::uuid(); 
+            $transaction->idTax = $request->idMetodePembayaran;  
             $transaction->idUser = $user->id;  
             $transaction->amount = 0; // Awal total amount
+            $transaction->status = 0;
             $transaction->save();
     
             $totalAmount = 0;
     
             foreach ($products as $productData) {
                 // $product = Produk::find($productData['id']);
-                // $size = Size::find($productData['sizeid']);
+                // $size = Size::find($productData['id_size']);
                 // if ($product->stock < $productData['quantity']) {
                 //     return response()->json(['message' => 'Stok tidak mencukupi untuk produk ' . $product->name], 400);
                 // }
@@ -168,29 +170,52 @@ class TransaksiController extends Controller
                 // $detail->save();
     
                 // $totalAmount += $product->price * $productData['quantity'];
-                $product = DB::table('produk')->where('id','=', $productData->id)->first();
-                $size = DB::table('size')->where('id', '=', $productData->sizeId)->first();
-
-                $size->jumlah -= $productData->quantity;
+                $product = DB::table('produk')->where('id','=', $productData['id'])->first();
+                $size = DB::table('size')->where('id', '=', $productData['id_size'])->first();
+               
+                if ($size->jumlah < $productData['quantity']) {
+                    return response()->json([
+                        'message' => 'Stok tidak mencukupi untuk produk ' . $product->name,
+                        ]
+                        , 400);
+                }
+                $size->jumlah -= $productData['quantity'];
                 
-                DB::table('size')->where('id', '=', $productData->sizeId)->update([$size]);
+                DB::table('size')->where('id', '=', $productData['id_size'])->update([
+                    "jumlah" => $size->jumlah
+                ]);
                 $detail = new Transaksi();
                 $detail->idKodeTransaksi = $transaction->id;
-                $detail->idProduk = $productData->id;
-                $detail->hargaSatuan = $productData->harga;
-                $detail->jumlahBarang = $productData->quantity; 
-                $detail->diskon = $productData->diskon ? $productData->diskon : 0;
-                $detail->diskon_amount = $productData->diskon_amount ? $productData->diskon_amount : 0;
-                $detail->total = $productData->total;
+                $detail->idProduk = $product->id;
+                $detail->idSize = $size->id;
+                $detail->hargaSatuan = $product->harga;
+                $detail->jumlahBarang = $productData['quantity']; 
+                $detail->diskon = $productData['diskon'] ? $productData['diskon'] : 0;
+                $detail->diskon_amount = $productData['diskon_amount'] ? $productData['diskon_amount'] : 0;
+                $detail->note = $productData['note'] ? $productData['note'] : null; 
+                $detail->total = $productData['total'];
                 $detail->save();
-                $totalAmount += $productData->total;
+                $totalAmount += $productData['total'];
             }
-    
-            $transaction->total_amount = $totalAmount;
-            $transaction->idTax = $request->idJenisPembayaran;
-            $transaction->save();
-    
-            return response()->json($transaction->load('details'), 201);
+            if($request->total === $totalAmount) {
+                $transaction->amount = $totalAmount;
+                $transaction->status = 1;
+                $transaction->save();
+
+                return response()->json([
+                    'status' => true,
+                    'message' => "Transaksi Berhasil"
+                ], 201);
+
+            } else {
+                return response()->json([
+                    "status" => false,
+                    "message" => "Something Wrong"
+                ],400);
+            }
+            // return response()->json([
+            //     'status' => true,
+            // ], 201);
         }   catch (\Exception $e) {
             //throw $th;
             return response()->json([
