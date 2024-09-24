@@ -18,29 +18,16 @@ class TransaksiController extends Controller
     function index(Request $request) {
         try {
             //code...
-            $this->validate($request, [
-                "id" => "required",
-            ]);
-            $getKodeTransaksi = DB::table('kode_transaksis')
-            ->where("id", '=', $request->id)
-            ->first();
-
-            $getItemTransaksi = DB::table('transaksi')
-            ->leftJoin('produk', 'transaksi.idProduk', '=','produk.id')
-            ->leftJoin('size', 'transaksi.idSize', '=', 'size.id')
-            ->where('transaksi.idKodeTransaksi', "=", $request->$getKodeTransaksi->id )
-            ->select('transaksi.*','produk.name as namaProduk','produk.harga as hargaProduk','size.name as namaSize',)
-            ->get();
-          
-            return response()->json([
-                "status" => true,
-                "data" => $getItemTransaksi,
-            ]);
-
+            $keyword = $request->keyword;
+            if($keyword) {
+                $result =  DB::table('kode_transaksis')->where('id', 'like', "%{$keyword}%")->get();
+            } else {
+                $result = DB::table('kode_transaksis')->get();
+            }
             
             return response()->json([
                 "status" => true,
-                "data" => $getItemTransaksi,
+                "data" => $result,
             ]);
             
 
@@ -226,34 +213,15 @@ class TransaksiController extends Controller
         }
     }
 
-    function create(Request $request) {
+    function getAll(Request $request) {
         try {
             //code...
-            $this->validate($request, [
-                "idKodeTransaksi" => "required",
-                "idProduk" => "required",
-                "idSize" => "required",
-                "hargaSatuan" => "required",
-                "jumlahBarang" => "required",
-                "total" => "required",
-            ]);
-
-            Transaksi::create([
-                    "idKodeTransaksi"=> $request->idKodeTransaksi, 
-                    "idProduk" => $request->idProduk, 
-                    "idSize"=> $request->idSize, 
-                    "hargaSatuan"=> $request->hargaSatuan, 
-                    "jumlahBarang"=> $request->jumlahBarang, 
-                    "diskon"=> $request->diskon ? $request->diskon : 0, 
-                    "diskon_amount"=> $request->diskonAmount ? $request->diskonAmount : 0,
-                    "total"=> $request->total, 
-                    "note"=> $request->note && $request->note,
-            ]);
-  
+            $result = Transaksi::all();
+            
 
             return response()->json([
                 "status" => true,
-                "message" => "add item transaksi success",
+                "data" => $result,
             ]);
 
         } catch (\Exception $e) {

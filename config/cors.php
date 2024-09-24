@@ -11,7 +11,7 @@ return [
     // "supports_credentials" => false,
     'paths' => ['api/*'],
    'allowed_methods' => ['*'],
-   'allowed_origins' => ['*'],
+   'allowed_origins' => ['https://www.crasherofficialstore.com', 'http://192.168.18.191', 'http://localhost:3000'],
    'allowed_origins_patterns' => [],
    'allowed_headers' => ['*'],
    'exposed_headers' => [],
