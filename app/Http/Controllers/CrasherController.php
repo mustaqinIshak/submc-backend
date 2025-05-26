@@ -25,9 +25,14 @@ class CrasherController extends Controller
                 ->where("produkId", "=", $item->id)
                 ->get()
                 ;
-    
-                $item->gambar1 = $getGambarProduk[0];
-                $item->gambar2 = $getGambarProduk[1] ? $getGambarProduk[1] : $getGambarProduk[0];
+                if(!$getGambarProduk) {
+                    $item->gambar1 = null;
+                    $item->gambar2 = null;
+                } else {
+                    $item->gambar1 = $getGambarProduk[0];
+                    $item->gambar2 = $getGambarProduk[1] ? $getGambarProduk[1] : $getGambarProduk[0];
+
+                }
     
             }
            

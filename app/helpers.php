@@ -276,7 +276,7 @@ function generateNumberBarcode($name, $date) {
     $randomNumberStr = str_pad($randomNumber, 3, '0', STR_PAD_LEFT);
     $result = $name.$date.$randomNumberStr;
 
-    $findBarcode = DB::table("produk")->where('barcode', '=', $result)->first();
+    $findBarcode = DB::table("size")->where('barcode', '=', $result)->first();
 
     if($findBarcode) {
         return generateNumberBarcode($name, $date);

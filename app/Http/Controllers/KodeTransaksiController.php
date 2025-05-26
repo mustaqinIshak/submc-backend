@@ -11,7 +11,8 @@ class KodeTransaksiController extends Controller
     //
     function index(Request $request) {
         $this->validate($request, [
-            "limit" => "required"
+            "limit" => "required",
+            "tanggal" => "required"
         ]);
         try {
             //code...
@@ -90,10 +91,10 @@ class KodeTransaksiController extends Controller
             ->where('id', '=', $request->id)
             ->update([
                 'note' => $request->note && $request->note,
-                'idTax' => $request->idTax ? $request->idTax : 0,
+                'idJenisPembayaran' => $request->idJenisPembayaran ? $request->idJenisPembayaran : 0,
                 'amount' => $request->amount,
                 'status' => $request->status,
-                'd_outlet' => $request->id_outlet 
+                'id_outlet' => $request->id_outlet 
             ]);
             return response()->json([
                 "status" => true,

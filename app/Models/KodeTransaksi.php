@@ -12,7 +12,7 @@ class KodeTransaksi extends Model
         "idUser", 
         "kode", 
         "note", 
-        "idTax", 
+        "idJenisPembayaran", 
         "jumlahBarang", 
         "amount", 
         "status"

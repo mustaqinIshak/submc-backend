@@ -36,7 +36,7 @@ class BrandController extends Controller
             $getBrand = DB::table('brand')
             ->leftJoin("produk","brand.id",'=','produk.id_brand')
             ->select('brand.*', DB::raw("COUNT(produk.id) as 'jumlah_artikel'"))
-            ->groupBy('brand.id')
+            ->groupBy('brand.id', 'brand.name', 'brand.created_at', 'brand.updated_at')
             ->orderBy('brand.id', 'desc')
             ->paginate($request->limit);
            

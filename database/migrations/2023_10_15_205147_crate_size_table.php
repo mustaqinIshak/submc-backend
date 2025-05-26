@@ -17,6 +17,7 @@ class CrateSizeTable extends Migration
         Schema::create('size', function (Blueprint $table) {
             $table->id();
             $table->bigInteger("produkId", false, true);
+            $table->string("barcode", 255);
             $table->string("name",255);
             $table->integer("jumlah", false, true);
             $table->timestamps();

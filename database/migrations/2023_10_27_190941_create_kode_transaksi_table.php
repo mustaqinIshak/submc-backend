@@ -18,7 +18,7 @@ class CreateKodeTransaksiTable extends Migration
             $table->integer("idUser", false, true);
             $table->string("kode", 255);
             $table->string("note", 255)->nullable();
-            $table->integer("idTax", false, true);
+            $table->integer("idJenisPembayaran", false, true);
             $table->integer("amount", false, true);
             $table->string("status", 255);
             $table->timestamps();

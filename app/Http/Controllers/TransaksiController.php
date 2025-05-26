@@ -18,16 +18,29 @@ class TransaksiController extends Controller
     function index(Request $request) {
         try {
             //code...
-            $keyword = $request->keyword;
-            if($keyword) {
-                $result =  DB::table('kode_transaksis')->where('id', 'like', "%{$keyword}%")->get();
-            } else {
-                $result = DB::table('kode_transaksis')->get();
-            }
+            $this->validate($request, [
+                "id" => "required",
+            ]);
+            $getKodeTransaksi = DB::table('kode_transaksis')
+            ->where("id", '=', $request->id)
+            ->first();
+
+            $getItemTransaksi = DB::table('transaksi')
+            ->leftJoin('produk', 'transaksi.idProduk', '=','produk.id')
+            ->leftJoin('size', 'transaksi.idSize', '=', 'size.id')
+            ->where('transaksi.idKodeTransaksi', "=", $request->$getKodeTransaksi->id )
+            ->select('transaksi.*','produk.name as namaProduk','produk.harga as hargaProduk','size.name as namaSize',)
+            ->get();
+          
+            return response()->json([
+                "status" => true,
+                "data" => $getItemTransaksi,
+            ]);
+
             
             return response()->json([
                 "status" => true,
-                "data" => $result,
+                "data" => $getItemTransaksi,
             ]);
             
 
@@ -86,29 +99,33 @@ class TransaksiController extends Controller
     public function searchProduk(Request $request)
     {
         try {
-            $keyword = $request->keyword;;
+            $keyword = $request->keyword;
+            $persen = "%";
             $results = [];
-            $products = DB::table('produk')->where('name', 'like', "%{$keyword}%")
-                                ->orWhere('barcode', 'like', "%{$keyword}%")
-                                ->get();
-            foreach ($products as $productData) {
-                $sizes = DB::table('size')->where('produkId', $productData->id)->get();
-                foreach($sizes as $size) {
-                    $result = [
-                        "id" => $productData->id,
-                        "barcode" => $productData->barcode,
-                        "name" => $productData->name,
-                        "harga" => $productData->harga,
-                        "id_size"=>$size->id,
-                        "size" => $size->name,
-                        "diskon" => $productData->jumlah_sale ? $productData->jumlah_sale : 0,
-                        "jumlah_stok" => $size->jumlah
-                    ];
-                    array_push($results,$result);
-                }
-            }
+            $products = DB::table('produk')
+            ->leftJoin('size', 'produk.id', '=', 'size.produkId')
+            ->where('produk.name', 'like', "%{$keyword}%")
+            ->orWhere('size.barcode', 'like', $keyword . $persen)
+            ->select('produk.id','size.barcode as barcode','produk.name', 'size.name as size','produk.harga as harga', 'size.jumlah as jumlah_stok', "produk.jumlah_sale as diskon")
+            ->get();
+            // foreach ($products as $productData) {
+            //     $sizes = DB::table('size')->where('produkId', $productData->id)->get();
+            //     foreach($sizes as $size) {
+            //         $result = [
+            //             "id" => $productData->id,
+            //             "barcode" => $productData->barcode,
+            //             "name" => $productData->name,
+            //             "harga" => $productData->harga,
+            //             "id_size"=>$size->id,
+            //             "size" => $size->name,
+            //             "diskon" => $productData->jumlah_sale ? $productData->jumlah_sale : 0,
+            //             "jumlah_stok" => $size->jumlah
+            //         ];
+            //         array_push($results,$result);
+            //     }
+            // }
     
-            return response()->json($results);
+            return response()->json($products);
         }catch (\Exception $e) {
             //throw $th;
             return response()->json([
@@ -141,7 +158,7 @@ class TransaksiController extends Controller
     
             foreach ($products as $productData) {
                 // $product = Produk::find($productData['id']);
-                // $size = Size::find($productData['id_size']);
+                // $size = Size::find($productData['id_size ']);
                 // if ($product->stock < $productData['quantity']) {
                 //     return response()->json(['message' => 'Stok tidak mencukupi untuk produk ' . $product->name], 400);
                 // }
@@ -158,7 +175,7 @@ class TransaksiController extends Controller
     
                 // $totalAmount += $product->price * $productData['quantity'];
                 $product = DB::table('produk')->where('id','=', $productData['id'])->first();
-                $size = DB::table('size')->where('id', '=', $productData['id_size'])->first();
+                $size = DB::table('size')->where('id', '=', $productData['id_size   '])->first();
                
                 if ($size->jumlah < $productData['quantity']) {
                     return response()->json([
@@ -168,7 +185,7 @@ class TransaksiController extends Controller
                 }
                 $size->jumlah -= $productData['quantity'];
                 
-                DB::table('size')->where('id', '=', $productData['id_size'])->update([
+                DB::table('size')->where('id', '=', $productData['id_size   '])->update([
                     "jumlah" => $size->jumlah
                 ]);
                 $detail = new Transaksi();
@@ -213,15 +230,34 @@ class TransaksiController extends Controller
         }
     }
 
-    function getAll(Request $request) {
+    function create(Request $request) {
         try {
             //code...
-            $result = Transaksi::all();
-            
+            $this->validate($request, [
+                "idKodeTransaksi" => "required",
+                "idProduk" => "required",
+                "idSize" => "required",
+                "hargaSatuan" => "required",
+                "jumlahBarang" => "required",
+                "total" => "required",
+            ]);
+
+            Transaksi::create([
+                    "idKodeTransaksi"=> $request->idKodeTransaksi, 
+                    "idProduk" => $request->idProduk, 
+                    "idSize"=> $request->idSize, 
+                    "hargaSatuan"=> $request->hargaSatuan, 
+                    "jumlahBarang"=> $request->jumlahBarang, 
+                    "diskon"=> $request->diskon ? $request->diskon : 0, 
+                    "diskon_amount"=> $request->diskonAmount ? $request->diskonAmount : 0,
+                    "total"=> $request->total, 
+                    "note"=> $request->note && $request->note,
+            ]);
+  
 
             return response()->json([
                 "status" => true,
-                "data" => $result,
+                "message" => "add item transaksi success",
             ]);
 
         } catch (\Exception $e) {

@@ -16,6 +16,6 @@ class Transaksi extends Model
         "diskon", 
         "diskon_amount",
         "total", 
-        "note"
+        "note",
       ];
 }

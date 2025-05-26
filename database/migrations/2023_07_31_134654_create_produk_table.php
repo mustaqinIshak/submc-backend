@@ -16,7 +16,6 @@ class CreateProdukTable extends Migration
         Schema::create('produk', function (Blueprint $table) {
             $table->id();
             $table->string("name", 255);
-            $table->string("barcode", 255);
             $table->integer("harga", false, true);
             $table->bigInteger("id_categori", false, true);
             $table->bigInteger("id_sub_categori", false, true)->nullable();

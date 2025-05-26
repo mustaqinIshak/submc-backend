@@ -68,16 +68,18 @@ Route::group(['middleware' => 'auth:api'],function(){
     Route::post('/deleteBannerHome', "BannerHomeController@delete");
     Route::post('/getIndexProduk', "ProdukController@index");
     Route::post('/getSelectedProduk', "ProdukController@getSelected");
+    Route::post('/massUpload',"ProdukController@getSelected");
     Route::post('/createProduk', "ProdukController@create");
     Route::post('/updateProduk', "ProdukController@update");
     Route::post('/deleteProduk', "ProdukController@delete");
+    Route::post('/stok-of-name-Produk/download', "ProdukController@getStokOfName");
     Route::post('/getGambarProduk', "GambarProdukController@index");
     Route::post('/createGambarProduk', "GambarProdukController@create");
     Route::post('/deleteGambarProduk', "GambarProdukController@delete");
     route::post('/getSize', 'SizeController@index');
     route::post('/createSize', 'SizeController@create');
     Route::post('/updateSize', "SizeController@update");
-    Route::post('/deleteSize', "Sizecontroller@delete");
+    Route::post('/deleteSize', "SizeController@delete");
     Route::post('/getProfileCompany', "ProfileCompanyController@index");
     Route::post('/updateProfileCompany', "ProfileCompanyController@update");
     Route::post('/getAllBrand', "BrandController@index");
@@ -99,4 +101,10 @@ Route::group(['middleware' => 'auth:api'],function(){
     Route::post('/jenisPembayaran', "JenisPembayaranController@index");
     Route::post('/jenisPembayaran/store', "JenisPembayaranController@store");
     Route::post('/jenisPembayaran/update', "JenisPembayaranController@update");
+    Route::post('/report-transaksi',"ReportController@index");
+    Route::post('/report-transaksi/download-excel',"ReportController@report");
+    Route::post('/dashboard-chart', "DashboardController@chart");
+    Route::post('/barcodes', "CetakBarcodeController@index");
+    Route::post('/search-barcodes', "CetakBarcodeController@searchBarcodes");
+
 });

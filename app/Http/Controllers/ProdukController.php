@@ -9,7 +9,11 @@ use App\Models\Produk;
 use App\Models\Size;
 use Illuminate\Support\Facades\File;
 use Carbon\Carbon;
-
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+ 
 class ProdukController extends Controller
 {
     //
@@ -17,47 +21,106 @@ class ProdukController extends Controller
     public function index (Request $request) {
         $this->validate($request, [
             "limit" => "required",
+            "idBrand" => "required",
         ]);
         try {
             //code...
-            if($request->search) {
-                $persen = "%";
-                $key = $request->search;
-  
-                $getProduk = DB::table('produk')
-                ->leftJoin('categori', 'produk.id_categori', '=', 'categori.id')
-                ->leftJoin('sub_categori', 'produk.id_sub_categori', '=', 'sub_categori.id')
-                ->leftJoin('brand', 'produk.id_brand', '=','brand.id')
-                ->leftJoin('size', 'produk.id', '=', 'size.produkId')
-                ->where('produk.name', 'like', $key . $persen)
-                ->orWhere('produk.barcode', 'like', $key . $persen)
-                ->orwhere('categori.name', 'like', $key . $persen)
-                ->orWhere('sub_categori.name', 'like', $key . $persen)
-                ->select('produk.id','produk.name', "produk.harga",'categori.name as kategori','sub_categori.name as subKategori', 
-                DB::raw("GROUP_CONCAT(size.name, ':', size.jumlah ORDER BY size.id ASC SEPARATOR ' ') as size") ,
-                'produk.sale as diskon', 'produk.status as statusProduk')
-                ->groupBy('produk.id','produk.name',"produk.harga",'categori.name','sub_categori.name','produk.sale', 'produk.status')
-                ->orderBy('produk.id', 'desc')
-                ->paginate($request->limit);
-                
-            } else {
-                $getProduk = DB::table('produk')
+            if($request->idBrand === 0) {
+                if($request->search) {
+                    $persen = "%";
+                    $key = $request->search;
+      
+                    $getProduk = DB::table('produk')
                     ->leftJoin('categori', 'produk.id_categori', '=', 'categori.id')
                     ->leftJoin('sub_categori', 'produk.id_sub_categori', '=', 'sub_categori.id')
                     ->leftJoin('brand', 'produk.id_brand', '=','brand.id')
                     ->leftJoin('size', 'produk.id', '=', 'size.produkId')
-                    ->select('produk.id','produk.name',"produk.harga",'categori.name as kategori','sub_categori.name as subKategori', 
-                    DB::raw("GROUP_CONCAT(size.name, ':', size.jumlah ORDER BY size.id ASC SEPARATOR ' ') as size") ,
-                    'produk.sale as diskon', 'produk.status as statusProduk')
-                    ->groupBy('produk.id','produk.name',"produk.harga",'categori.name','sub_categori.name','produk.sale', 'produk.status')
+                    ->where('produk.name', 'like', $key . $persen)
+                    ->orWhere('size.barcode', 'like', $key . $persen)
+                    ->orWhere('categori.name', 'like', $key . $persen)
+                    ->orWhere('sub_categori.name', 'like', $key . $persen)
+                    // ->select('produk.id','produk.barcode','produk.name', 'brand.name as brand_name',"produk.harga",'categori.name as kategori','sub_categori.name as subKategori', 
+                    // DB::raw("GROUP_CONCAT(size.name, ':', size.jumlah ORDER BY size.id ASC SEPARATOR ' ') as size") ,
+                    // 'produk.sale as diskon', 'produk.status as statusProduk')
+                    ->select('produk.id','size.barcode','produk.name', 'brand.name as brand_name',"produk.harga",'categori.name as kategori','sub_categori.name as subKategori', 
+                        "size.name as name_size", "size.jumlah as quantity_size",
+                        'produk.sale as diskon', 'produk.status as statusProduk')
+                    // ->groupBy('produk.id','size.barcode','produk.name', "brand.name", "produk.harga",'categori.name','sub_categori.name','produk.sale', 'produk.status')
                     ->orderBy('produk.id', 'desc')
+                    ->orderBy('size.id', 'asc') 
                     ->paginate($request->limit);
+                    
+                } else {
+                    $getProduk = DB::table('produk')
+                        ->leftJoin('categori', 'produk.id_categori', '=', 'categori.id')
+                        ->leftJoin('sub_categori', 'produk.id_sub_categori', '=', 'sub_categori.id')
+                        ->leftJoin('brand', 'produk.id_brand', '=','brand.id')
+                        ->leftJoin('size', 'produk.id', '=', 'size.produkId')
+                        // ->select('produk.id','produk.barcode','produk.name', 'brand.name as brand_name',"produk.harga",'categori.name as kategori','sub_categori.name as subKategori', 
+                        // DB::raw("GROUP_CONCAT(size.name, ':', size.jumlah ORDER BY size.id ASC SEPARATOR ' ') as size") ,
+                        // 'produk.sale as diskon', 'produk.status as statusProduk')
+                        ->select('produk.id','size.barcode','produk.name', 'brand.name as brand_name',"produk.harga",'categori.name as kategori','sub_categori.name as subKategori', 
+                        "size.name as name_size", "size.jumlah as quantity_size",
+                        'produk.sale as diskon', 'produk.status as statusProduk')
+                        // ->groupBy('produk.id','size.barcode','produk.name', "brand.name", "produk.harga",'categori.name','sub_categori.name','produk.sale', 'produk.status')
+                        ->orderBy('produk.id', 'desc')
+                        ->orderBy('size.id', 'asc') 
+                        ->paginate($request->limit);
+                }
+                return response()->json([
+                    "status" => true,
+                    "data" => $getProduk,
+                ]);
+            } else {
+                if($request->search) {
+                    $persen = "%";
+                    $key = $request->search;
+      
+                    $getProduk = DB::table('produk')
+                    ->leftJoin('categori', 'produk.id_categori', '=', 'categori.id')
+                    ->leftJoin('sub_categori', 'produk.id_sub_categori', '=', 'sub_categori.id')
+                    ->leftJoin('brand', 'produk.id_brand', '=','brand.id')
+                    ->leftJoin('size', 'produk.id', '=', 'size.produkId')
+                    ->where('brand.id','=', $request->idBrand)
+                    ->where('produk.name', 'like', $key . $persen)
+                    ->orWhere('size.barcode', 'like', $key . $persen)
+                    ->orwhere('categori.name', 'like', $key . $persen)
+                    ->orWhere('sub_categori.name', 'like', $key . $persen)
+                    // ->select('produk.id','produk.barcode','produk.name', 'brand.name as brand_name',"produk.harga",'categori.name as kategori','sub_categori.name as subKategori', 
+                    // DB::raw("GROUP_CONCAT(size.name, ':', size.jumlah ORDER BY size.id ASC SEPARATOR ' ') as size") ,
+                    // 'produk.sale as diskon', 'produk.status as statusProduk')
+                    ->select('produk.id','size.barcode','produk.name', 'brand.name as brand_name',"produk.harga",'categori.name as kategori','sub_categori.name as subKategori', 
+                        "size.name as name_size", "size.jumlah as quantity_size",
+                        'produk.sale as diskon', 'produk.status as statusProduk')
+                    // ->groupBy('produk.id','size.barcode','produk.name', "brand.name", "produk.harga",'categori.name','sub_categori.name','produk.sale', 'produk.status')
+                    ->orderBy('produk.id', 'desc')
+                    ->orderBy('size.id', 'asc') 
+                    ->paginate($request->limit);
+                    
+                } else {
+                    $getProduk = DB::table('produk')
+                        ->leftJoin('categori', 'produk.id_categori', '=', 'categori.id')
+                        ->leftJoin('sub_categori', 'produk.id_sub_categori', '=', 'sub_categori.id')
+                        ->leftJoin('brand', 'produk.id_brand', '=','brand.id')
+                        ->leftJoin('size', 'produk.id', '=', 'size.produkId')
+                        ->where('brand.id','=', $request->idBrand)
+                        // ->select('produk.id','size.barcode','produk.name', 'brand.name as brand_name',"produk.harga",'categori.name as kategori','sub_categori.name as subKategori', 
+                        // "size.name as name_size", DB::raw("GROUP_CONCAT(size.jumlah ORDER BY size.id) as quantity_size") ,
+                        // 'produk.sale as diskon', 'produk.status as statusProduk')
+                        ->select('produk.id','size.barcode','produk.name', 'brand.name as brand_name',"produk.harga",'categori.name as kategori','sub_categori.name as subKategori', 
+                        "size.name as name_size", "size.jumlah as quantity_size",
+                        'produk.sale as diskon', 'produk.status as statusProduk')
+                        // ->groupBy('produk.id','size.barcode','produk.name', "brand.name", "produk.harga",'categori.name','sub_categori.name','produk.sale', 'produk.status')
+                        ->orderBy('produk.id', 'desc')
+                        ->paginate($request->limit);
+                }
+                return response()->json([
+                    "status" => true,
+                    "data" => $getProduk,
+                ]);
             }
 
-            return response()->json([
-                "status" => true,
-                "data" => $getProduk,
-            ]);
+            
         } catch (\Exception $e) {
             //throw $th;
             return response()->json([
@@ -99,8 +162,9 @@ class ProdukController extends Controller
             ->leftJoin('categori', 'produk.id_categori', '=', 'categori.id')
             ->leftJoin('brand', 'produk.id_brand', '=','brand.id')
             ->leftJoin('sub_categori', 'produk.id_sub_categori', '=', 'sub_categori.id')
+            ->leftJoin('size', 'produk.id', '=', 'size.produkId')
             ->where("produk.id", "=", $request->id)
-            ->select('produk.*', 'categori.name as categoriName', 'sub_categori.name as subKategoriName', 'brand.name as brandName')
+            ->select('produk.*', "size.barcode",'categori.name as categoriName', 'sub_categori.name as subKategoriName', 'brand.name as brandName')
             ->first();
             
 
@@ -162,7 +226,6 @@ class ProdukController extends Controller
                 $createProduk = Produk::create([
                     "name"=> $request->input("name"),
                     "harga" => $request->input("harga"),
-                    "barcode" =>$generateCodeBarcode,
                     "id_categori" => $request->input("idCategori"),
                     "id_sub_categori" => $request->input("idSubCategori"),
                     "deskripsi" => $request->input("deskripsi"),
@@ -179,25 +242,27 @@ class ProdukController extends Controller
                 ]);
                 $images = $request->file('gambar');
                 $sizes = $request->input('size');
-                
-                foreach ($images as $image) {
-                    // $path = $image->store('uploads'); // Store images in the "uploads" directory.
-                    $produkId = $createProduk->id;
-                    $clearedString = str_replace(' ', '', $image->getClientOriginalName());
-                    $imageName = time() . '.' . $clearedString ;
-                    $image->move('produkImg', $imageName);
-                    $pathGambar = url('produkImg'.'/'.$imageName);
-                    $insertGambar = GambarProduk::create([
-                        "produkId" => $produkId,
-                        "name" => $imageName,
-                        "path" => $pathGambar,
-                    ]);
-                    
+                if($images) {
+                    foreach ($images as $image) {
+                        // $path = $image->store('uploads'); // Store images in the "uploads" directory.
+                        $produkId = $createProduk->id;
+                        $clearedString = str_replace(' ', '', $image->getClientOriginalName());
+                        $imageName = time() . '.' . $clearedString ;
+                        $image->move('produkImg', $imageName);
+                        $pathGambar = url('produkImg'.'/'.$imageName);
+                        $insertGambar = GambarProduk::create([
+                            "produkId" => $produkId,
+                            "name" => $imageName,
+                            "path" => $pathGambar,
+                        ]);
+                        
+                    }
                 }
                 foreach ($sizes as $size) {
                     $decode = json_decode($size);
                     $insertSize =   Size::create([
                         "produkId" => $createProduk->id,
+                        "barcode" => generateNumberBarcode($kodeName, $dateBarcode),
                         "name" => $decode->name,
                         "jumlah" => $decode->jumlah,
                     ]);
@@ -221,6 +286,73 @@ class ProdukController extends Controller
                 "message" => $e->getMessage()
             ],400);
             die;
+        }
+    }
+
+    public function createFromExcel(Request $request) {
+        $this->validate($request, [
+            "fileExcel" => "required|file|mimes:xlsx,xls|max:2048", // Validasi untuk file Excel
+        ]);
+    
+        try {
+            // Mengambil file Excel
+            $file = $request->file('fileExcel');
+            $spreadsheet = IOFactory::load($file->getRealPath());
+            $sheetData = $spreadsheet->getActiveSheet()->toArray(); // Mengubah menjadi array
+    
+            foreach ($sheetData as $row) {
+                // Misalkan kolom dalam file Excel berdasarkan urutan:
+                // 0: name, 1: harga, 2: idCategori, 3: idSubCategori,
+                // 4: idBrand, 5: deskripsi, 6: linkShoope, 7: status,
+                // 8: imageName (nama file gambar), 9: sizeName, 10: sizeQuantity
+    
+                // Validasi data yang diperlukan
+                if (empty(trim($row[0])) || empty(trim($row[1])) || empty(trim($row[2])) ||
+                    empty(trim($row[3])) || empty(trim($row[4])) || empty(trim($row[5])) ||
+                    empty(trim($row[6])) || empty(trim($row[7]))) {
+                    continue; // Lewati jika data tidak lengkap
+                }
+    
+                // Menyimpan produk ke database
+                $produk = Produk::create([
+                    "name" => trim($row[0]),
+                    "harga" => trim($row[1]),
+                    "id_categori" => trim($row[2]),
+                    "id_sub_categori" => trim($row[3]),
+                    "deskripsi" => trim($row[5]),
+                    "link_shoope" => trim($row[6]),
+                    "status" => trim($row[7]),
+                    "id_brand" => trim($row[4]),
+                ]);
+    
+                // Menyimpan gambar ke database (jika ada)
+                if (!empty(trim($row[8]))) {
+                    GambarProduk::create([
+                        "produkId" => $produk->id,
+                        "name" => trim($row[8]),
+                        "path" => url('produkImg/' . trim($row[8])), // Sesuaikan path sesuai tempat penyimpanan gambar Anda
+                    ]);
+                }
+    
+                // Menyimpan ukuran produk jika tersedia
+                if (!empty(trim($row[9])) && !empty(trim($row[10]))) {
+                    Size::create([
+                        "produkId" => $produk->id,
+                        "name" => trim($row[9]),
+                        "jumlah" => intval(trim($row[10])),
+                    ]);
+                }
+            }
+    
+            return response()->json([
+                "status" => true,
+                "message" => "Produk berhasil ditambahkan dari Excel",
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => false,
+                "message" => $e->getMessage(),
+            ], 400);
         }
     }
 
@@ -337,6 +469,55 @@ class ProdukController extends Controller
                     "message" => "Delete produk success",
                 ]);
             }
+        } catch (\Exception $e) {
+            //throw $th;
+            return response()->json([
+                "status" => false,
+                "message" => $e->getMessage()
+            ],400);
+            die;
+        }
+    }
+
+    public function getStokOfName (Request $request) {
+        $this->validate($request, [
+            "idBrand" => "required",
+        ]);
+        try {
+            //code...
+            if($request->idBrand === 0) {
+                $getProduk = DB::table('produk')
+                    ->leftJoin('categori', 'produk.id_categori', '=', 'categori.id')
+                    ->leftJoin('sub_categori', 'produk.id_sub_categori', '=', 'sub_categori.id')
+                    ->leftJoin('brand', 'produk.id_brand', '=','brand.id')
+                    ->leftJoin('size', 'produk.id', '=', 'size.produkId')
+                    ->select('produk.id','size.barcode','produk.name', 'brand.name as brand_name',"produk.harga",'categori.name as kategori','sub_categori.name as subKategori', 
+                    "size.name as name_size", "size.jumlah as quantity_size",
+                    'produk.sale as diskon')
+                    // ->groupBy('produk.id','produk.barcode','produk.name', "brand.name", "produk.harga",'categori.name','sub_categori.name','produk.sale', 'produk.status')
+                    ->orderBy('produk.id', 'desc')
+                    ->orderBy('size.id', 'asc') 
+                    ->get();
+            } else {
+                $getProduk = DB::table('produk')
+                ->leftJoin('categori', 'produk.id_categori', '=', 'categori.id')
+                ->leftJoin('sub_categori', 'produk.id_sub_categori', '=', 'sub_categori.id')
+                ->leftJoin('brand', 'produk.id_brand', '=','brand.id')
+                ->leftJoin('size', 'produk.id', '=', 'size.produkId')
+                ->where('brand.id','=', $request->idBrand)
+                ->select('produk.id','size.barcode','produk.name', 'brand.name as brand_name',"produk.harga",'categori.name as kategori','sub_categori.name as subKategori', 
+                "size.name as name_size", "size.jumlah as quantity_size",
+                'produk.sale as diskon')
+                // ->groupBy('produk.id','produk.barcode','produk.name', "brand.name", "produk.harga",'categori.name','sub_categori.name','produk.sale', 'produk.status')
+                ->orderBy('produk.id', 'desc')
+                ->orderBy('size.id', 'asc') 
+                ->get();
+            }
+            return response()->json([
+                "status" => true,
+                "data" => $getProduk,
+            ]);
+            
         } catch (\Exception $e) {
             //throw $th;
             return response()->json([

@@ -54,13 +54,18 @@ class SizeController extends Controller
     public function create(Request $request) {
         $this->validate($request, [
             "idProduk" => "required",
+            "nama_artikel" => "required",
             "name" => "required",
             "jumlah" => "required",
         ]);
         try {
             //code...
+            $kodeName = substr($request->input("name_artikel"), 0, 3);
+            $dateBarcode = time();
+            $generateCodeBarcode = generateNumberBarcode($kodeName, $dateBarcode);
             $insertSize =   Size::create([
                 "produkId" => $request->idProduk,
+                "barcode" => generateNumberBarcode($kodeName, $dateBarcode),
                 "name" => $request->name,
                 "jumlah" => $request->jumlah,
             ]);

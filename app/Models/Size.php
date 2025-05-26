@@ -10,6 +10,6 @@ class Size extends Model
     protected $table = "size";
 
     protected $fillable = [
-        "produkId", "name" , "jumlah" 
+        "produkId", "barcode", "name" , "jumlah" 
       ];
 }
